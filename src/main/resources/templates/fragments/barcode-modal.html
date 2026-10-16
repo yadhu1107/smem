@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="barcodeModal" class="modal fade" id="barcodeScannerModal" tabindex="-1" aria-labelledby="barcodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-success text-white py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-upc-scan fs-4"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="barcodeModalLabel">Barcode Inventory Scanner & Database Sync</h5>
+                        <small class="opacity-75">Connects with backend database &bull; Auto-detects USB scanners &bull; Camera scanning</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopCameraScanner()"></button>
+            </div>
+
+            <!-- Modal Nav Tabs -->
+            <div class="bg-light px-4 pt-3 border-bottom">
+                <ul class="nav nav-tabs border-0" id="barcodeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-semibold text-dark" id="scanner-view-tab" data-bs-toggle="tab" data-bs-target="#scannerView" type="button" role="tab">
+                            <i class="bi bi-upc me-1 text-success"></i> Barcode Scanner & Lookup
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold text-dark" id="demo-sheet-tab" data-bs-toggle="tab" data-bs-target="#demoSheet" type="button" role="tab" onclick="loadDemoBarcodesList()">
+                            <i class="bi bi-grid-3x3-gap-fill me-1 text-primary"></i> 20 Demo Barcodes (Quick Simulator)
+                            <span class="badge bg-primary ms-1">20 Items</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="modal-body p-4">
+                <div class="tab-content" id="barcodeTabContent">
+                    <!-- Tab 1: Live Scanner & Dynamic Backend Action -->
+                    <div class="tab-pane fade show active" id="scannerView" role="tabpanel">
+                        <!-- Hardware Status Indicator -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 p-2 px-3 mb-3 small">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+                                <span class="fw-semibold text-success">USB Hardware Scanner Active:</span>
+                                <span class="text-muted">Point handheld scanner at any barcode or type manually below.</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm py-1 mt-1 mt-md-0" onclick="toggleCameraScanner()">
+                                <i class="bi bi-camera-video me-1"></i> Toggle Device Camera
+                            </button>
+                        </div>
+
+                        <!-- Barcode Input Group -->
+                        <div class="input-group input-group-lg mb-3 shadow-sm">
+                            <span class="input-group-text bg-white"><i class="bi bi-upc fs-4 text-secondary"></i></span>
+                            <input type="text" id="modalBarcodeInput" class="form-control fw-bold" placeholder="Scan barcode or type digits (e.g. 890126201001)..." autofocus>
+                            <button class="btn btn-emerald px-4 fw-semibold" type="button" onclick="triggerManualBarcodeLookup()">
+                                <i class="bi bi-search me-1"></i> Search Database
+                            </button>
+                        </div>
+
+                        <!-- Camera Preview Box -->
+                        <div id="qr-reader" style="display: none; width: 100%; max-width: 480px; margin: 0 auto;" class="border rounded p-2 mb-3 bg-light shadow-sm"></div>
+
+                        <!-- Dynamic Lookup & Storing Result Container -->
+                        <div id="barcodeLookupResult">
+                            <div class="card border-0 bg-light py-4 text-center">
+                                <div class="card-body">
+                                    <i class="bi bi-upc-scan display-4 text-success opacity-50 mb-2"></i>
+                                    <h5 class="fw-bold text-dark">Ready for Barcode Scan</h5>
+                                    <p class="text-muted small mb-3">Scan any product barcode with your USB scanner, webcam, or pick one from the <strong>20 Demo Barcodes</strong> tab.</p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="switchToDemoTab()">
+                                        <i class="bi bi-list-check me-1"></i> View 20 Demo Barcodes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: 20 Demo Barcodes Quick Test Sheet -->
+                    <div class="tab-pane fade" id="demoSheet" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-stars text-warning me-1"></i> Preloaded 20 Supermarket Demo Barcodes</h6>
+                                <small class="text-muted">Click <strong>"Test Scan"</strong> on any product to instantly simulate hardware scanning into the backend.</small>
+                            </div>
+                            <span class="badge bg-success py-2 px-3">Backend Connected &bull; Database / JPA</span>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                            <table class="table table-hover table-sm align-middle">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Barcode</th>
+                                        <th>Product Name</th>
+                                        <th>Brand</th>
+                                        <th>Category</th>
+                                        <th>Unit</th>
+                                        <th>Price</th>
+                                        <th class="text-end">Simulation Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="demoBarcodesTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                                            <span class="ms-2 text-muted">Loading demo catalog from backend...</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light py-2">
+                <span class="me-auto text-muted small"><i class="bi bi-shield-check text-success me-1"></i> Real-time inventory sync &bull; Expiry status recalculation</span>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="stopCameraScanner()">Close Window</button>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

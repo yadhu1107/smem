@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('20 Demo Barcodes')}"></head>
+<body>
+
+<div class="d-flex">
+    <div th:replace="~{fragments/sidebar :: sidebar('barcode-demo')}"></div>
+
+    <div id="content-wrapper">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <main class="container-fluid p-4">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <!-- Page Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-upc-scan text-success me-2"></i> 20 Preloaded Demo Barcodes
+                    </h3>
+                    <p class="text-muted small mb-0">
+                        Scan these with a <strong>USB Barcode Scanner</strong>, <strong>Camera</strong>, or click <strong>"Test Scan"</strong> to query the backend and store batches.
+                    </p>
+                </div>
+                <div class="d-flex gap-2 mt-2 mt-md-0 no-print">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i> Print Barcode Sheet
+                    </button>
+                    <button type="button" class="btn btn-emerald btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#barcodeScannerModal">
+                        <i class="bi bi-camera-video me-1"></i> Open Scanner
+                    </button>
+                </div>
+            </div>
+
+            <!-- Instructions Card -->
+            <div class="card border-0 bg-success bg-opacity-10 border-start border-success border-4 shadow-sm mb-4 no-print">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill text-success fs-3 me-3"></i>
+                        <div class="small">
+                            <strong>How to test barcode scanning:</strong>
+                            <ol class="mb-0 ps-3 mt-1">
+                                <li><strong>Hardware USB Scanner:</strong> Aim your USB barcode scanner at the barcode digits on your screen and squeeze the trigger. It auto-detects and pulls up the product details.</li>
+                                <li><strong>Device Camera:</strong> Click "Open Scanner", click "Toggle Device Camera", and hold the barcode in view.</li>
+                                <li><strong>1-Click Simulation:</strong> Click the green <strong>"Test Scan"</strong> button on any card below to instantly test the backend lookup and batch registration.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 20 Demo Cards Grid -->
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-xl-4" th:each="p, stat : ${products}">
+                    <div class="card h-100 shadow-sm border-0 card-hover">
+                        <div class="card-body p-3 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-light text-dark border" th:text="${p.category.name}">Category</span>
+                                <span class="badge bg-secondary text-white small" th:text="'#' + ${stat.count}">#1</span>
+                            </div>
+
+                            <h5 class="fw-bold text-dark mb-1" th:text="${p.name}">Product Name</h5>
+                            <div class="text-muted small mb-2" th:text="${p.brand}">Brand</div>
+
+                            <!-- Barcode Visual Representation -->
+                            <div class="bg-light p-2 rounded-2 text-center my-auto border">
+                                <svg class="demo-barcode mx-auto d-block" width="280" height="75"
+                                     th:id="'demo-barcode-' + ${stat.index}"
+                                     th:attr="data-barcode=${p.barcode}"></svg>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <div>
+                                    <span class="text-muted small">Selling Price:</span>
+                                    <strong class="text-success ms-1" th:text="'$' + ${p.sellingPrice}">$0.00</strong>
+                                </div>
+                                <!--
+                                    NOTE: th:onclick with string expressions is blocked in Thymeleaf 3.1+
+                                    (XSS safety policy). We use data-barcode and wire clicks via JS below.
+                                -->
+                                <button type="button"
+                                        class="btn btn-emerald btn-sm px-3 shadow-sm no-print btn-test-scan"
+                                        th:attr="data-barcode=${p.barcode}">
+                                    <i class="bi bi-upc-scan me-1"></i> Test Scan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/barcode-modal :: barcodeModal}"></div>
+
+<!-- Wire up "Test Scan" buttons safely via JavaScript (avoids Thymeleaf 3.1 event-attr restriction) -->
+<script th:inline="none">
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.demo-barcode').forEach(function (svg) {
+        var value = svg.getAttribute('data-barcode');
+        if (window.JsBarcode && value) {
+            JsBarcode(svg, value, { format: 'CODE128', displayValue: true, fontSize: 14, height: 48, margin: 4 });
+        }
+    });
+    document.querySelectorAll('.btn-test-scan').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var barcode = btn.getAttribute('data-barcode');
+            if (barcode && typeof simulateScanBarcode === 'function') {
+                simulateScanBarcode(barcode);
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

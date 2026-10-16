@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create User Account')}"></head>
+<body>
+
+<div class="d-flex">
+    <div th:replace="~{fragments/sidebar :: sidebar('users')}"></div>
+
+    <div id="content-wrapper">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <main class="container-fluid p-4">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-7">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3">
+                            <h4 class="fw-bold text-dark mb-0">Create Authorized User</h4>
+                            <small class="text-muted">Register system credentials with role-based permissions</small>
+                        </div>
+                        <div class="card-body p-4">
+                            <form th:action="@{/users/save}" method="post">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label for="username" class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. jsmith" required>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="fullName" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="e.g. John Smith" required>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="e.g. jsmith@smartfood.com" required>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="role" class="form-label fw-semibold">System Role <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="role" name="role" required>
+                                            <option value="ROLE_STAFF">Store Staff (Products, Inventory, Alerts, Waste)</option>
+                                            <option value="ROLE_ADMIN">Store Administrator (Full Access + Reports & Users)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="password" class="form-label fw-semibold">Initial Password <span class="text-danger">*</span></label>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter secure password" required minlength="6">
+                                        <small class="text-muted">Password will be securely hashed with BCrypt.</small>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                    <a th:href="@{/users}" class="btn btn-secondary px-4">Cancel</a>
+                                    <button type="submit" class="btn btn-emerald px-4 shadow-sm">
+                                        <i class="bi bi-person-check-fill me-1"></i> Create User
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+</div>
+
+</body>
+</html>

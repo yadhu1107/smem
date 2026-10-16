@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Dashboard')}"></head>
+<body>
+
+<div class="d-flex">
+    <!-- Sidebar Fragment -->
+    <div th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></div>
+
+    <!-- Main Content Wrapper -->
+    <div id="content-wrapper">
+        <!-- Top Navbar -->
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <!-- Main Body -->
+        <main class="container-fluid p-4">
+            <!-- Flash Message Banner -->
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <!-- Welcome Header -->
+            <div class="page-heading d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">Supermarket Store Dashboard</h3>
+                    <p class="text-muted small mb-0">Real-time inventory expiry status, stock levels, and FEFO alerts</p>
+                </div>
+                <div class="d-flex gap-2 mt-2 mt-md-0">
+                    <form th:action="@{/expiry/check-now}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Run Expiry Audit
+                        </button>
+                    </form>
+                    <a th:href="@{/expiry/fefo}" class="btn btn-emerald btn-sm shadow-sm">
+                        <i class="bi bi-arrow-repeat me-1"></i> FEFO Stock Rotation
+                    </a>
+                </div>
+            </div>
+
+            <!-- 6 KPI Summary Cards -->
+            <div class="row g-3 mb-4">
+                <!-- 1. Total Products -->
+                <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+                    <div class="card kpi-card card-hover h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title">Total Products</span>
+                                <div class="kpi-value text-dark" th:text="${stats.totalProducts}">0</div>
+                                <span class="text-muted small">Active in Catalog</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Total Stock Units -->
+                <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+                    <div class="card kpi-card card-hover h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title">Total Stock</span>
+                                <div class="kpi-value text-dark" th:text="${stats.totalStockQuantity}">0</div>
+                                <span class="text-muted small">Valid Units on Shelf</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-layers"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Nearing Expiry -->
+                <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+                    <div class="card kpi-card card-hover h-100 border-warning border-opacity-50">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title text-warning">Near Expiry</span>
+                                <div class="kpi-value text-warning" th:text="${stats.nearingExpiryCount}">0</div>
+                                <span class="text-muted small">Batches in Warning</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-warning bg-opacity-15 text-warning">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Expired Products -->
+                <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+                    <div class="card kpi-card card-hover h-100 border-danger border-opacity-50">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title text-danger">Expired</span>
+                                <div class="kpi-value text-danger" th:text="${stats.expiredCount}">0</div>
+                                <span class="text-muted small">Must Dispose Now</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-danger bg-opacity-15 text-danger">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Low-Stock Products -->
+                <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+                    <div class="card kpi-card card-hover h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title text-info">Low Stock</span>
+                                <div class="kpi-value text-info" th:text="${stats.lowStockCount}">0</div>
+                                <span class="text-muted small">Below Threshold</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-info bg-opacity-10 text-info">
+                                <i class="bi bi-graph-down-arrow"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Stock Value at Risk -->
+                <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+                    <div class="card kpi-card card-hover h-100 bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title text-dark">Value at Risk</span>
+                                <div class="kpi-value text-danger" th:text="'$' + ${#numbers.formatDecimal(stats.stockValueAtRisk, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                                <span class="text-muted small">Near Expiry + Expired</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row (Chart.js dynamically populated from the configured database) -->
+            <div class="row g-4 mb-4">
+                <!-- Expiry Status Breakdown Doughnut -->
+                <div class="col-12 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold"><i class="bi bi-pie-chart-fill text-success me-2"></i> Expiry Status Breakdown</span>
+                            <span class="badge bg-light text-dark">Active Stock</span>
+                        </div>
+                        <div class="card-body" style="height: 280px; position: relative;">
+                            <canvas id="expiryStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Expiry Timeline Chart -->
+                <div class="col-12 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold"><i class="bi bi-clock-history text-warning me-2"></i> Upcoming Expiries</span>
+                            <span class="badge bg-light text-dark">Next 30+ Days</span>
+                        </div>
+                        <div class="card-body" style="height: 280px; position: relative;">
+                            <canvas id="upcomingExpiryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Inventory Bar Chart -->
+                <div class="col-12 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold"><i class="bi bi-bar-chart-fill text-primary me-2"></i> Stock by Category</span>
+                            <span class="badge bg-light text-dark">Valid Units</span>
+                        </div>
+                        <div class="card-body" style="height: 280px; position: relative;">
+                            <canvas id="categoryStockChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Tables Row -->
+            <div class="row g-4">
+                <!-- Critical Items Requiring Attention -->
+                <div class="col-12 col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark">
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Critical Expiry Items
+                            </span>
+                            <a th:href="@{/expiry/alerts}" class="btn btn-sm btn-link text-decoration-none">View All Alerts &rarr;</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Product / Batch</th>
+                                            <th>Category</th>
+                                            <th>Quantity</th>
+                                            <th>Expiry Date</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${#lists.isEmpty(criticalBatches)}">
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-1"></i>
+                                                No immediate critical expiry items detected!
+                                            </td>
+                                        </tr>
+                                        <tr th:each="item : ${criticalBatches}">
+                                            <td>
+                                                <div class="fw-bold text-dark" th:text="${item.batch.product.name}">Product Name</div>
+                                                <small class="text-muted" th:text="'Batch: ' + ${item.batch.batchNumber}">Batch #</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark" th:text="${item.batch.product.category.name}">Category</span>
+                                            </td>
+                                            <td class="fw-bold" th:text="${item.batch.quantity} + ' ' + ${item.batch.product.unit}">0 pcs</td>
+                                            <td th:text="${item.batch.expiryDate}">2026-10-20</td>
+                                            <td>
+                                                <span class="badge" th:classappend="'badge-status-' + ${item.status.name().toLowerCase()}" th:text="${item.daysRemainingText}">Status</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a th:href="@{/waste/new(batchId=${item.batch.id})}" class="btn btn-outline-danger" title="Discard as Waste">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                    <a th:if="${item.status.name() != 'EXPIRED'}" th:href="@{/donations/new(batchId=${item.batch.id})}" class="btn btn-outline-success" title="Donate Surplus">
+                                                        <i class="bi bi-heart"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Quick Glance -->
+                <div class="col-12 col-lg-5">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark">
+                                <i class="bi bi-graph-down text-danger me-1"></i> Low Stock Alerts
+                            </span>
+                            <a th:href="@{/products(expiryFilter='LOW_STOCK')}" class="btn btn-sm btn-link text-decoration-none">View All &rarr;</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Valid Stock</th>
+                                            <th>Min Required</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${#lists.isEmpty(lowStockList)}">
+                                            <td colspan="4" class="text-center text-muted py-4">
+                                                <i class="bi bi-check2-circle text-success fs-4 d-block mb-1"></i>
+                                                All active products satisfy minimum stock thresholds!
+                                            </td>
+                                        </tr>
+                                        <tr th:each="p : ${lowStockList}">
+                                            <td>
+                                                <div class="fw-bold text-dark" th:text="${p.product.name}">Product Name</div>
+                                                <small class="text-muted" th:text="${p.product.brand}">Brand</small>
+                                            </td>
+                                            <td class="fw-bold text-danger" th:text="${p.totalValidStock} + ' ' + ${p.product.unit}">0 pcs</td>
+                                            <td th:text="${p.product.minStockQuantity} + ' ' + ${p.product.unit}">10 pcs</td>
+                                            <td>
+                                                <span th:if="${p.outOfStock}" class="badge bg-danger">Out of Stock</span>
+                                                <span th:unless="${p.outOfStock}" class="badge bg-warning text-dark">Low Stock</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+</div>
+
+<!-- Barcode Modal -->
+<div th:replace="~{fragments/barcode-modal :: barcodeModal}"></div>
+
+</body>
+</html>

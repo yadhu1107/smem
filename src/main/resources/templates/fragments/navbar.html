@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<header th:fragment="navbar" class="top-navbar d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+        <!-- Quick Barcode Trigger Button -->
+        <button type="button" class="btn btn-outline-emerald btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#barcodeScannerModal">
+            <i class="bi bi-upc-scan me-1"></i> Scan Barcode
+        </button>
+
+        <span class="text-muted small d-none d-md-inline">
+            <i class="bi bi-calendar3 me-1"></i>
+            <span th:text="${#temporals.format(T(java.time.LocalDate).now(), 'EEEE, dd MMMM yyyy')}">Date</span>
+        </span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <a th:href="@{/products/new}" class="btn btn-sm btn-emerald">
+            <i class="bi bi-plus-lg me-1"></i> Add Product
+        </a>
+        <a th:href="@{/batches/new}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-boxes me-1"></i> Add Batch
+        </a>
+    </div>
+</header>
+</html>

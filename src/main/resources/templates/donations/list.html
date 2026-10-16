@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Surplus Food Donations')}"></head>
+<body>
+
+<div class="d-flex">
+    <div th:replace="~{fragments/sidebar :: sidebar('donations')}"></div>
+
+    <div id="content-wrapper">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <main class="container-fluid p-4">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <!-- Page Header -->
+            <div class="page-heading d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">Surplus Food Donations</h3>
+                    <p class="text-muted small mb-0">Track safe, edible near-expiry food redirected to local charities, shelters, and food banks</p>
+                </div>
+                <div class="d-flex gap-2 mt-2 mt-md-0">
+                    <a th:href="@{/donations/new}" class="btn btn-emerald btn-sm shadow-sm">
+                        <i class="bi bi-heart-fill me-1"></i> Record Surplus Donation
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-6">
+                    <div class="card kpi-card shadow-sm border-success border-opacity-25">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title text-success">Total Donated Units</span>
+                                <div class="kpi-value text-success" th:text="${totalDonatedQuantity}">0</div>
+                                <span class="text-muted small">Surplus items provided to community organizations</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-heart-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <div class="card kpi-card shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="kpi-title">Donation Dispatches</span>
+                                <div class="kpi-value text-dark" th:text="${#lists.size(donations)}">0</div>
+                                <span class="text-muted small">Successful community transfers recorded</span>
+                            </div>
+                            <div class="kpi-icon-circle bg-info bg-opacity-10 text-info">
+                                <i class="bi bi-truck"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="record-section">
+                <div class="section-heading">
+                    <div><h5 class="fw-bold text-dark mb-1"><i class="bi bi-heart text-success me-2"></i>Donation history</h5>
+                        <p class="text-muted small mb-0">Recipient, product and dispatch details for every donation.</p></div>
+                    <span class="badge bg-light text-dark" th:text="${#lists.size(donations)} + ' dispatches'">0 dispatches</span>
+                </div>
+                <div class="row g-3" th:if="${!#lists.isEmpty(donations)}">
+                    <div class="col-12 col-md-6 col-xl-4" th:each="d : ${donations}">
+                        <article class="card record-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                    <div><h6 class="fw-bold mb-1" th:text="${d.batch.product.name}">Product</h6>
+                                        <span class="text-muted small" th:text="${d.batch.product.category.name}">Category</span></div>
+                                    <span class="badge bg-success-subtle text-success" th:text="${d.quantity} + ' ' + ${d.batch.product.unit}">10 pcs</span>
+                                </div>
+                                <div class="recipient-chip"><i class="bi bi-heart-fill"></i><strong th:text="${d.recipientOrganization}">Organization</strong></div>
+                                <div class="record-meta-grid mt-3">
+                                    <div><span>Date</span><strong th:text="${d.donationDate}">Date</strong></div>
+                                    <div><span>Batch</span><strong th:text="${d.batch.batchNumber}">BAT-001</strong></div>
+                                    <div><span>Status</span><strong th:text="${d.status.label}">Status</strong></div>
+                                    <div><span>Recorded by</span><strong th:text="${d.recordedByUser != null ? d.recordedByUser.fullName : 'Staff'}">Staff</strong></div>
+                                </div>
+                                <div class="record-footnote" th:if="${d.notes != null and !d.notes.isBlank()}" th:text="${d.notes}">Notes</div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="empty-state" th:if="${#lists.isEmpty(donations)}"><i class="bi bi-heart text-success"></i><strong>No donations recorded yet</strong><span>Completed donation dispatches will appear here.</span></div>
+            </section>
+        </main>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+</div>
+
+</body>
+</html>

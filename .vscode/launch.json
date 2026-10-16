@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "request": "launch",
+            "name": "Run Smart Food Expiry System",
+            "mainClass": "com.smartfood.expiry.SmartFoodExpiryApplication",
+            "projectName": "smart-food-expiry-system",
+            "console": "integratedTerminal",
+            "serverReadyAction": {
+                "action": "debugWithChrome",
+                "pattern": "\\bTomcat started on port(s)?:\\s*(\\d+)",
+                "uriFormat": "http://localhost:%s"
+            }
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Open Smart Food Expiry in Chrome",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

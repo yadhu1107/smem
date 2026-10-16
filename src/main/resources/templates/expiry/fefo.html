@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('FEFO Stock Rotation')}"></head>
+<body>
+
+<div class="d-flex">
+    <div th:replace="~{fragments/sidebar :: sidebar('fefo')}"></div>
+
+    <div id="content-wrapper">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <main class="container-fluid p-4">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <!-- Header -->
+            <div class="page-heading d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">FEFO (First Expired, First Out) Stock Rotation</h3>
+                    <p class="text-muted small mb-0">Prioritized shelf placement guide &bull; Always display and sell the earliest expiring eligible stock first</p>
+                </div>
+                <div class="d-flex gap-2 mt-2 mt-md-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i> Print Rotation Sheet
+                    </button>
+                </div>
+            </div>
+
+            <!-- Food Safety Principle Callout -->
+            <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4 no-print">
+                <i class="bi bi-info-circle-fill fs-3 me-3 text-info"></i>
+                <div class="small">
+                    <strong>FEFO Policy:</strong> Batches with the nearest expiration date must always be positioned at the front of store shelves and dispatched first at POS checkout. Expired goods are strictly omitted from FEFO recommendations and must be discarded immediately.
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="card border-0 shadow-sm mb-4 no-print">
+                <div class="card-body p-3">
+                    <form th:action="@{/expiry/fefo}" method="get" class="row g-2 align-items-center">
+                        <div class="col-12 col-md-4">
+                            <select name="categoryId" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">Filter by Category (All)</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${selectedCategoryId == cat.id}">Category</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2" th:if="${selectedCategoryId != null}">
+                            <a th:href="@{/expiry/fefo}" class="btn btn-outline-secondary btn-sm">Clear Filter</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Print Header -->
+            <div class="print-header">
+                <h2>Smart Food Supermarket &bull; Daily FEFO Stock Rotation Sheet</h2>
+                <p>Printed on: <span th:text="${#temporals.format(T(java.time.LocalDateTime).now(), 'yyyy-MM-dd HH:mm')}">Date</span></p>
+            </div>
+
+            <section class="record-section">
+                <div class="section-heading">
+                    <div><h5 class="fw-bold text-dark mb-1"><i class="bi bi-arrow-repeat text-success me-2"></i>Eligible stock rotation</h5>
+                        <p class="text-muted small mb-0">Work from the earliest expiry date down the queue.</p></div>
+                    <span class="badge bg-light text-dark" th:text="${#lists.size(fefoList)} + ' batches'">0 batches</span>
+                </div>
+                <div class="row g-3" th:if="${!#lists.isEmpty(fefoList)}">
+                    <div class="col-12 col-md-6 col-xl-4" th:each="view, stat : ${fefoList}">
+                        <article class="card record-card rotation-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <span class="rotation-priority" th:classappend="${stat.index < 3 ? 'priority-urgent' : (stat.index < 10 ? 'priority-soon' : '')}" th:text="${stat.count}">1</span>
+                                        <div><h6 class="fw-bold mb-1" th:text="${view.batch.product.name}">Product</h6><span class="text-muted small" th:text="${view.batch.product.brand}">Brand</span></div>
+                                    </div>
+                                    <span class="badge" th:classappend="'badge-status-' + ${view.status.name().toLowerCase()}" th:text="${view.daysRemainingText}">2 days left</span>
+                                </div>
+                                <div class="record-meta-grid">
+                                    <div><span>Batch</span><strong th:text="${view.batch.batchNumber}">BAT-001</strong></div>
+                                    <div><span>Stock</span><strong th:text="${view.batch.quantity} + ' ' + ${view.batch.product.unit}">0 pcs</strong></div>
+                                    <div><span>Expiry</span><strong class="text-danger" th:text="${view.batch.expiryDate}">Date</strong></div>
+                                    <div><span>Category</span><strong th:text="${view.batch.product.category.name}">Category</strong></div>
+                                </div>
+                                <div class="rotation-guidance mt-3">
+                                    <span th:if="${view.daysRemaining <= 2}" class="text-danger"><i class="bi bi-arrow-up-circle-fill me-1"></i>Move to front urgently</span>
+                                    <span th:if="${view.daysRemaining > 2 and view.daysRemaining <= 7}" class="text-warning-emphasis"><i class="bi bi-arrow-right-circle me-1"></i>Rotate to front shelf</span>
+                                    <span th:if="${view.daysRemaining > 7}" class="text-success"><i class="bi bi-box-arrow-in-down me-1"></i>Standard display</span>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="empty-state" th:if="${#lists.isEmpty(fefoList)}"><i class="bi bi-check2-circle text-success"></i><strong>No eligible stock</strong><span>There are no active batches in the rotation queue.</span></div>
+            </section>
+        </main>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+</div>
+
+</body>
+</html>

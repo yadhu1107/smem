@@ -1,0 +1,8 @@
+/target/
+/data/*.mv.db
+/data/*.trace.db
+/data/*.lock.db
+/.idea/
+/.vscode/.classpath
+/.vscode/.project
+/.vscode/.settings/

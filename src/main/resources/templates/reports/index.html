@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Reports & Analytics')}"></head>
+<body>
+
+<div class="d-flex">
+    <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
+
+    <div id="content-wrapper">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <main class="container-fluid p-4">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <!-- Header & Export / Print Controls -->
+            <div class="page-heading d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <span class="report-eyebrow"><i class="bi bi-graph-up-arrow me-2"></i>Store insights</span>
+                    <h3 class="fw-bold text-dark mb-1">Reports & analytics</h3>
+                    <p class="text-muted small mb-0">A clear view of stock health, expiry exposure, and report history.</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0 no-print">
+                    <a th:href="@{/reports/export/{type}(type=${reportType}, startDate=${startDate}, endDate=${endDate})}" class="btn btn-outline-emerald">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export to CSV
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i> Print Report
+                    </button>
+                </div>
+            </div>
+
+            <section class="row g-3 mb-4 report-summary" aria-label="Inventory snapshot">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <article class="card report-stat-card h-100"><div class="card-body">
+                        <div class="report-stat-icon report-icon-green"><i class="bi bi-box-seam"></i></div>
+                        <span class="report-stat-label">Products</span><strong th:text="${reportStats.totalProducts}">0</strong><small>Active in catalog</small>
+                    </div></article>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <article class="card report-stat-card h-100"><div class="card-body">
+                        <div class="report-stat-icon report-icon-blue"><i class="bi bi-layers"></i></div>
+                        <span class="report-stat-label">Available units</span><strong th:text="${reportStats.totalStockQuantity}">0</strong><small>Safe stock on hand</small>
+                    </div></article>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <article class="card report-stat-card report-stat-warning h-100"><div class="card-body">
+                        <div class="report-stat-icon report-icon-amber"><i class="bi bi-exclamation-triangle"></i></div>
+                        <span class="report-stat-label">Near expiry</span><strong th:text="${reportStats.nearingExpiryCount}">0</strong><small>Batches to review</small>
+                    </div></article>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <article class="card report-stat-card report-stat-danger h-100"><div class="card-body">
+                        <div class="report-stat-icon report-icon-red"><i class="bi bi-currency-dollar"></i></div>
+                        <span class="report-stat-label">Value at risk</span><strong th:text="'$' + ${#numbers.formatDecimal(reportStats.stockValueAtRisk, 1, 'COMMA', 2, 'POINT')}">$0.00</strong><small>Near-expiry and expired stock</small>
+                    </div></article>
+                </div>
+            </section>
+
+            <section class="row g-3 mb-4 report-charts" aria-label="Inventory analytics">
+                <div class="col-12 col-lg-4"><article class="card report-chart-card h-100">
+                    <div class="card-header"><div><h6>Stock health</h6><span>Batch status distribution</span></div><i class="bi bi-pie-chart"></i></div>
+                    <div class="card-body"><div class="report-chart-wrap"><canvas id="reportStatusChart" aria-label="Stock health chart"></canvas></div></div>
+                </article></div>
+                <div class="col-12 col-lg-4"><article class="card report-chart-card h-100">
+                    <div class="card-header"><div><h6>Upcoming expiry</h6><span>Units grouped by time remaining</span></div><i class="bi bi-calendar2-week"></i></div>
+                    <div class="card-body"><div class="report-chart-wrap"><canvas id="reportExpiryChart" aria-label="Upcoming expiry chart"></canvas></div></div>
+                </article></div>
+                <div class="col-12 col-lg-4"><article class="card report-chart-card h-100">
+                    <div class="card-header"><div><h6>Stock by category</h6><span>Available units per category</span></div><i class="bi bi-bar-chart"></i></div>
+                    <div class="card-body"><div class="report-chart-wrap"><canvas id="reportCategoryChart" aria-label="Stock by category chart"></canvas></div></div>
+                </article></div>
+            </section>
+
+            <!-- Report Selector & Date Filter Card -->
+            <section class="card report-filter-card mb-4 no-print">
+                <div class="card-body">
+                    <div class="report-filter-intro"><div class="report-filter-icon"><i class="bi bi-sliders"></i></div><div><h5>Explore reports</h5><p>Choose a report and refine the date range where applicable.</p></div></div>
+                    <form th:action="@{/reports}" method="get" class="row g-3 align-items-end">
+                        <div class="col-12 col-lg-5">
+                            <label class="form-label fw-semibold" for="report-type">Report type</label>
+                            <select id="report-type" name="reportType" class="form-select" onchange="this.form.submit()">
+                                <option value="CURRENT_INVENTORY" th:selected="${reportType == 'CURRENT_INVENTORY'}">Current inventory</option>
+                                <option value="NEAR_EXPIRY" th:selected="${reportType == 'NEAR_EXPIRY'}">Near-expiry risk</option>
+                                <option value="EXPIRED" th:selected="${reportType == 'EXPIRED'}">Expired stock</option>
+                                <option value="LOW_STOCK" th:selected="${reportType == 'LOW_STOCK'}">Low-stock reorder</option>
+                                <option value="BATCH_HISTORY" th:selected="${reportType == 'BATCH_HISTORY'}">Batch movement history</option>
+                                <option value="WASTE" th:selected="${reportType == 'WASTE'}">Food waste & loss</option>
+                                <option value="CATEGORY" th:selected="${reportType == 'CATEGORY'}">Category summary</option>
+                            </select>
+                        </div>
+
+                        <!-- Date range filters for historical reports -->
+                        <div class="col-6 col-lg-2" th:if="${reportType == 'BATCH_HISTORY' || reportType == 'WASTE'}">
+                            <label class="form-label fw-semibold" for="start-date">From date</label>
+                            <input id="start-date" type="date" name="startDate" th:value="${startDate}" class="form-control">
+                        </div>
+
+                        <div class="col-6 col-lg-2" th:if="${reportType == 'BATCH_HISTORY' || reportType == 'WASTE'}">
+                            <label class="form-label fw-semibold" for="end-date">To date</label>
+                            <input id="end-date" type="date" name="endDate" th:value="${endDate}" class="form-control">
+                        </div>
+
+                        <div class="col-12 col-lg-3" th:if="${reportType == 'BATCH_HISTORY' || reportType == 'WASTE'}">
+                            <button type="submit" class="btn btn-emerald w-100"><i class="bi bi-funnel me-1"></i>Apply date range</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Print Header Banner -->
+            <div class="print-header">
+                <h2>Smart Food Supermarket &bull; Management Report</h2>
+                <h4 th:text="'Report: ' + ${reportType}">Report Type</h4>
+                <p>Generated: <span th:text="${#temporals.format(T(java.time.LocalDateTime).now(), 'yyyy-MM-dd HH:mm')}">Date</span></p>
+            </div>
+
+            <!-- Dynamic Report Data Rendering based on Report Type -->
+            <div class="card report-data-card">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                    <span class="report-data-kicker">Selected report</span>
+                    <h5 class="fw-bold text-dark mb-0 mt-1">
+                        <i class="bi bi-file-earmark-bar-graph text-success me-2"></i>
+                        <span th:if="${reportType == 'CURRENT_INVENTORY'}">Current On-Shelf Inventory Report</span>
+                        <span th:if="${reportType == 'NEAR_EXPIRY'}">Near-Expiry Horizon Report</span>
+                        <span th:if="${reportType == 'EXPIRED'}">Expired Inventory Report</span>
+                        <span th:if="${reportType == 'LOW_STOCK'}">Low Stock Reorder Report</span>
+                        <span th:if="${reportType == 'BATCH_HISTORY'}">Batch Movement History Audit</span>
+                        <span th:if="${reportType == 'WASTE'}">Food Waste & Financial Loss Report</span>
+                        <span th:if="${reportType == 'CATEGORY'}">Category-Wise Inventory & Risk Valuation</span>
+                    </h5></div>
+                    <span class="report-record-count"><strong th:text="${#lists.size(reportData)}">0</strong><span>records</span></span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+
+                        <!-- 1, 2, 3: Batch View Reports (Current Inventory, Near Expiry, Expired) -->
+                        <table th:if="${reportType == 'CURRENT_INVENTORY' || reportType == 'NEAR_EXPIRY' || reportType == 'EXPIRED'}" class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Batch #</th>
+                                    <th>Product Name</th>
+                                    <th>Barcode</th>
+                                    <th>Category</th>
+                                    <th>Quantity</th>
+                                    <th>Purchase Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Countdown</th>
+                                    <th>Status</th>
+                                    <th>Cost Value</th>
+                                    <th>Supplier</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(reportData)}">
+                                    <td colspan="11" class="text-center text-muted py-5">No records found for this report.</td>
+                                </tr>
+                                <tr th:each="view : ${reportData}">
+                                    <td><strong class="text-dark" th:text="${view.batch.batchNumber}">BAT-001</strong></td>
+                                    <td class="fw-semibold text-dark" th:text="${view.batch.product.name}">Product</td>
+                                    <td><code th:text="${view.batch.product.barcode}">Barcode</code></td>
+                                    <td><span class="badge bg-light text-dark" th:text="${view.batch.product.category.name}">Category</span></td>
+                                    <td><strong th:text="${view.batch.quantity} + ' ' + ${view.batch.product.unit}">0 pcs</strong></td>
+                                    <td th:text="${view.batch.purchaseDate}">2026-10-01</td>
+                                    <td class="fw-bold" th:text="${view.batch.expiryDate}">2026-10-25</td>
+                                    <td><span class="small fw-semibold" th:text="${view.daysRemainingText}">Days</span></td>
+                                    <td>
+                                        <span class="badge" th:classappend="'badge-status-' + ${view.status.name().toLowerCase()}" th:text="${view.statusDisplayName}">Status</span>
+                                    </td>
+                                    <td th:text="'$' + ${view.totalCost}">$0.00</td>
+                                    <td th:text="${view.batch.supplier ?: 'N/A'}">Supplier</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- 4: Low Stock Report -->
+                        <table th:if="${reportType == 'LOW_STOCK'}" class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Barcode</th>
+                                    <th>Category</th>
+                                    <th>Brand</th>
+                                    <th>Valid Stock</th>
+                                    <th>Min Threshold</th>
+                                    <th>Deficit Units</th>
+                                    <th>Status</th>
+                                    <th>Unit Selling Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(reportData)}">
+                                    <td colspan="9" class="text-center text-muted py-5">All products meet minimum stock thresholds.</td>
+                                </tr>
+                                <tr th:each="p : ${reportData}">
+                                    <td class="fw-bold text-dark" th:text="${p.product.name}">Product</td>
+                                    <td><code th:text="${p.product.barcode}">Barcode</code></td>
+                                    <td><span class="badge bg-light text-dark" th:text="${p.product.category.name}">Category</span></td>
+                                    <td th:text="${p.product.brand}">Brand</td>
+                                    <td class="fw-bold text-danger" th:text="${p.totalValidStock} + ' ' + ${p.product.unit}">0 pcs</td>
+                                    <td th:text="${p.product.minStockQuantity} + ' ' + ${p.product.unit}">10 pcs</td>
+                                    <td class="fw-bold text-danger" th:text="${p.product.minStockQuantity - p.totalValidStock} + ' ' + ${p.product.unit}">10 pcs</td>
+                                    <td>
+                                        <span th:if="${p.outOfStock}" class="badge bg-danger">OUT OF STOCK</span>
+                                        <span th:unless="${p.outOfStock}" class="badge bg-warning text-dark">LOW STOCK</span>
+                                    </td>
+                                    <td th:text="'$' + ${p.product.sellingPrice}">$0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- 5: Batch Movement Audit History Report -->
+                        <table th:if="${reportType == 'BATCH_HISTORY'}" class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Batch #</th>
+                                    <th>Product Name</th>
+                                    <th>Movement Type</th>
+                                    <th>Qty Changed</th>
+                                    <th>Prev Stock</th>
+                                    <th>New Stock</th>
+                                    <th>Reason / Notes</th>
+                                    <th>Staff Member</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(reportData)}">
+                                    <td colspan="9" class="text-center text-muted py-5">No inventory movement logs within selected dates.</td>
+                                </tr>
+                                <tr th:each="m : ${reportData}">
+                                    <td class="small" th:text="${#temporals.format(m.movementDate, 'yyyy-MM-dd HH:mm')}">Date</td>
+                                    <td><strong th:text="${m.batch.batchNumber}">BAT-001</strong></td>
+                                    <td th:text="${m.batch.product.name}">Product</td>
+                                    <td><span class="badge bg-secondary" th:text="${m.movementType.description}">Type</span></td>
+                                    <td><strong th:text="${m.quantity}">0</strong></td>
+                                    <td th:text="${m.previousQuantity}">0</td>
+                                    <td><strong class="text-dark" th:text="${m.newQuantity}">10</strong></td>
+                                    <td class="small" th:text="${m.reason ?: m.notes}">Reason</td>
+                                    <td class="small" th:text="${m.performedByUser != null ? m.performedByUser.fullName : 'System'}">Staff</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- 6: Food Waste Report -->
+                        <table th:if="${reportType == 'WASTE'}" class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Waste Date</th>
+                                    <th>Product Name</th>
+                                    <th>Barcode</th>
+                                    <th>Batch #</th>
+                                    <th>Quantity</th>
+                                    <th>Reason</th>
+                                    <th>Cost Loss</th>
+                                    <th>Staff</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(reportData)}">
+                                    <td colspan="9" class="text-center text-muted py-5">No waste records logged in selected date range.</td>
+                                </tr>
+                                <tr th:each="w : ${reportData}">
+                                    <td th:text="${w.wasteDate}">Date</td>
+                                    <td class="fw-bold text-dark" th:text="${w.batch.product.name}">Product</td>
+                                    <td><code th:text="${w.batch.product.barcode}">Barcode</code></td>
+                                    <td><strong th:text="${w.batch.batchNumber}">BAT-001</strong></td>
+                                    <td><span class="badge bg-danger" th:text="'-' + ${w.quantity} + ' ' + ${w.batch.product.unit}">-10</span></td>
+                                    <td><span class="badge bg-light text-dark border" th:text="${w.wasteReason.label}">Reason</span></td>
+                                    <td class="text-danger fw-bold" th:text="'$' + ${w.estimatedCostLoss}">$0.00</td>
+                                    <td class="small" th:text="${w.recordedByUser != null ? w.recordedByUser.fullName : 'Staff'}">Staff</td>
+                                    <td class="small text-muted" th:text="${w.notes ?: '—'}">Notes</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- 7: Category-Wise Report -->
+                        <table th:if="${reportType == 'CATEGORY'}" class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Category Name</th>
+                                    <th>Category Code</th>
+                                    <th>Warning Horizon</th>
+                                    <th>Registered Products</th>
+                                    <th>Total Shelf Stock Units</th>
+                                    <th>Total Inventory Valuation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(reportData)}">
+                                    <td colspan="6" class="text-center text-muted py-5">No categories found.</td>
+                                </tr>
+                                <tr th:each="c : ${reportData}">
+                                    <td class="fw-bold text-dark" th:text="${c.categoryName}">Category</td>
+                                    <td><code th:text="${c.categoryCode}">CODE</code></td>
+                                    <td><span class="badge bg-warning text-dark" th:text="${c.warningDays} + ' Days'">7 Days</span></td>
+                                    <td th:text="${c.productCount}">0</td>
+                                    <td><strong class="text-dark" th:text="${c.totalStock} + ' units'">0 units</strong></td>
+                                    <td class="fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(c.totalCostValue, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const reportStats = /*[[${reportStats}]]*/ {};
+    const reportChartBase = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 16, color: '#64748b', font: { size: 11 } } } }
+    };
+
+    new Chart(document.getElementById('reportStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(reportStats.statusCounts || {}),
+            datasets: [{ data: Object.values(reportStats.statusCounts || {}), backgroundColor: ['#22a06b', '#f3b23f', '#e46969'], borderColor: '#fff', borderWidth: 4, hoverOffset: 5 }]
+        },
+        options: { ...reportChartBase, cutout: '70%' }
+    });
+
+    new Chart(document.getElementById('reportExpiryChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(reportStats.upcomingExpiriesMap || {}),
+            datasets: [{ data: Object.values(reportStats.upcomingExpiriesMap || {}), backgroundColor: ['#e9a23b', '#f0bd5a', '#7bb9a1', '#589b80', '#34765f'], borderRadius: 7, maxBarThickness: 34 }]
+        },
+        options: { ...reportChartBase, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#edf1f4' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#64748b', maxRotation: 0, minRotation: 0 } } } }
+    });
+
+    new Chart(document.getElementById('reportCategoryChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(reportStats.categoryCounts || {}),
+            datasets: [{ data: Object.values(reportStats.categoryCounts || {}), backgroundColor: '#75b798', borderRadius: 6, maxBarThickness: 28 }]
+        },
+        options: { ...reportChartBase, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: '#edf1f4' }, ticks: { color: '#94a3b8' } }, y: { grid: { display: false }, ticks: { color: '#64748b' } } } }
+    });
+</script>
+
+</body>
+</html>

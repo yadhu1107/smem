@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${product.name})}"></head>
+<body>
+
+<div class="d-flex">
+    <div th:replace="~{fragments/sidebar :: sidebar('products')}"></div>
+
+    <div id="content-wrapper">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <main class="container-fluid p-4">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <!-- Breadcrumb Navigation -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a th:href="@{/products}" class="text-decoration-none">Products</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${product.name}">Product Details</li>
+                </ol>
+            </nav>
+
+            <!-- Product Overview Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-md-8">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-light text-dark fs-6" th:text="${product.category.name}">Category</span>
+                                <span class="badge bg-secondary" th:text="'Warning Period: ' + ${product.category.defaultWarningDays} + ' Days'">Warning</span>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-1" th:text="${product.name}">Product Name</h2>
+                            <p class="text-muted mb-3" th:text="${product.description ?: 'No description provided.'}">Description</p>
+
+                            <div class="row g-3 small">
+                                <div class="col-6 col-sm-3">
+                                    <span class="text-muted d-block">Brand</span>
+                                    <strong class="text-dark" th:text="${product.brand}">Brand</strong>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <span class="text-muted d-block">Barcode</span>
+                                    <code class="fs-6" th:text="${product.barcode}">Barcode</code>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <span class="text-muted d-block">Purchase Price</span>
+                                    <strong class="text-dark" th:text="'$' + ${product.purchasePrice}">$0.00</strong>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <span class="text-muted d-block">Selling Price</span>
+                                    <strong class="text-dark" th:text="'$' + ${product.sellingPrice}">$0.00</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4 mt-3 mt-md-0 border-start ps-md-4 text-center text-md-start">
+                            <span class="text-muted small d-block">Total Valid Shelf Stock</span>
+                            <div class="display-6 fw-bold text-dark my-1" th:text="${productView.totalValidStock} + ' ' + ${product.unit}">0 pcs</div>
+                            <div class="mb-3">
+                                <span th:if="${productView.outOfStock}" class="badge bg-danger">Out of Stock</span>
+                                <span th:if="${!productView.outOfStock and productView.lowStock}" class="badge bg-warning text-dark">Low Stock Warning</span>
+                                <span th:if="${!productView.outOfStock and !productView.lowStock}" class="badge bg-success">Healthy Stock</span>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a th:href="@{/batches/new(productId=${product.id})}" class="btn btn-emerald btn-sm flex-grow-1">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Batch
+                                </a>
+                                <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batches Table Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-boxes text-success me-2"></i> Stock Batches (FEFO Order)</h5>
+                    <span class="badge bg-light text-dark" th:text="${#lists.size(batchViews)} + ' Total Batches'">0 Batches</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Batch Number</th>
+                                    <th>Quantity</th>
+                                    <th>Purchase Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Countdown</th>
+                                    <th>Status</th>
+                                    <th>Unit Cost</th>
+                                    <th>Supplier</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(batchViews)}">
+                                    <td colspan="9" class="text-center text-muted py-5">
+                                        No batches have been registered for this product yet.
+                                        <div class="mt-2">
+                                            <a th:href="@{/batches/new(productId=${product.id})}" class="btn btn-sm btn-emerald">
+                                                <i class="bi bi-plus-lg me-1"></i> Register First Batch
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:each="view : ${batchViews}">
+                                    <td>
+                                        <strong class="text-dark" th:text="${view.batch.batchNumber}">BAT-001</strong>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold" th:text="${view.batch.quantity} + ' ' + ${product.unit}">0 pcs</span>
+                                        <small class="text-muted d-block" th:text="'(Initial: ' + ${view.batch.initialQuantity} + ')'">(Initial: 0)</small>
+                                    </td>
+                                    <td th:text="${view.batch.purchaseDate}">2026-10-01</td>
+                                    <td>
+                                        <strong th:text="${view.batch.expiryDate}">2026-10-25</strong>
+                                    </td>
+                                    <td>
+                                        <span class="small fw-semibold" th:text="${view.daysRemainingText}">3 days left</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" th:classappend="'badge-status-' + ${view.status.name().toLowerCase()}">
+                                            <i class="bi me-1" th:classappend="${view.statusIconClass}"></i>
+                                            <span th:text="${view.statusDisplayName}">Safe</span>
+                                        </span>
+                                    </td>
+                                    <td th:text="'$' + ${view.batch.costPerUnit}">$0.00</td>
+                                    <td th:text="${view.batch.supplier ?: 'N/A'}">Supplier</td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a th:href="@{/batches/history/{id}(id=${view.batch.id})}" class="btn btn-outline-secondary" title="View Audit Trail">
+                                                <i class="bi bi-clock-history"></i>
+                                            </a>
+                                            <!-- Quick Adjust Modal Button -->
+                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" th:data-bs-target="'#adjustModal-' + ${view.batch.id}" title="Adjust Stock">
+                                                <i class="bi bi-sliders"></i>
+                                            </button>
+                                            <a th:href="@{/waste/new(batchId=${view.batch.id})}" class="btn btn-outline-danger" title="Discard as Waste">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+
+                                        <!-- Adjust Stock Modal -->
+                                        <div class="modal fade" th:id="'adjustModal-' + ${view.batch.id}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered text-start">
+                                                <div class="modal-content">
+                                                    <form th:action="@{/batches/adjust}" method="post">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title fw-bold"><i class="bi bi-sliders text-primary me-2"></i> Adjust Batch Stock</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="batchId" th:value="${view.batch.id}">
+                                                            <p class="small text-muted mb-3">
+                                                                Batch: <strong><span th:text="${view.batch.batchNumber}"></span></strong> |
+                                                                Current Stock: <strong><span th:text="${view.batch.quantity} + ' ' + ${product.unit}"></span></strong>
+                                                            </p>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-semibold small">Adjustment Type</label>
+                                                                <select name="adjustmentType" class="form-select form-select-sm" required>
+                                                                    <option value="IN">Increase Stock (+ Inward Correction)</option>
+                                                                    <option value="OUT">Decrease Stock (- Outward Correction / Write-off)</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-semibold small">Adjustment Quantity</label>
+                                                                <input type="number" name="quantity" min="1" class="form-control form-control-sm" required placeholder="Units to adjust">
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-semibold small">Reason for Adjustment</label>
+                                                                <input type="text" name="reason" class="form-control form-control-sm" required placeholder="e.g. Physical inventory count variance, shrinkage...">
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-semibold small">Additional Audit Notes</label>
+                                                                <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Optional notes..."></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-emerald btn-sm">Save Adjustment</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/barcode-modal :: barcodeModal}"></div>
+
+</body>
+</html>

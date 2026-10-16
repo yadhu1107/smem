@@ -1,0 +1,21 @@
+barcode,product_name,brand,category,unit,min_stock,purchase_price,selling_price
+890126201001,Farm Fresh Whole Milk 1L,Amul / Meadow Gold,Dairy & Eggs,liters,15,42.00,54.00
+890126202002,Whole Wheat Brown Bread 400g,Modern Harvest,Bakery,pack,12,28.00,40.00
+890126203003,Greek Style Natural Yogurt 500g,Epigamia,Dairy & Eggs,pcs,10,65.00,95.00
+890126204004,Prime Fresh Chicken Breast 500g,FreshToHome,Meat & Poultry,pack,15,140.00,195.00
+890126205005,Organic Fresh Strawberries 250g,Berry Valley,Fresh Produce,pack,8,80.00,130.00
+890126206006,Golden Sweet Kernel Corn 400g,Del Monte,Canned Goods,pcs,20,55.00,85.00
+890126207007,100% Squeezed Orange Juice 1L,Tropicana,Beverages,liters,10,70.00,110.00
+890126208008,Pure Creamery Salted Butter 500g,Kerrygold,Dairy & Eggs,pcs,12,110.00,165.00
+890126209009,Artisan Multigrain Sourdough Bread 450g,The French Baker,Bakery,pack,8,45.00,75.00
+890126210010,Fresh Atlantic Salmon Fillet 300g,Ocean Catch,Meat & Poultry,pack,6,220.00,320.00
+890126211011,Premium Hass Avocados 4-Pack,Nature's Basket,Fresh Produce,pack,10,120.00,180.00
+890126212012,Organic Tender Baby Spinach 200g,Green Fields,Fresh Produce,pack,12,35.00,60.00
+890126213013,Crushed Italian San Marzano Tomatoes 800g,Mutti,Canned Goods,pcs,15,85.00,135.00
+890126214014,Unsweetened Vanilla Almond Milk 1L,Silk Organics,Beverages,liters,10,95.00,150.00
+890126215015,Mature English White Cheddar 200g,Cathedral City,Dairy & Eggs,pcs,14,130.00,190.00
+890126216016,Wild Maine Frozen Blueberries 500g,Wyman's,Frozen Foods,pack,10,115.00,175.00
+890126217017,Belgian Dark Chocolate Ice Cream 1L,Häagen-Dazs,Frozen Foods,pcs,12,180.00,270.00
+890126218018,Crunchy Honey Roasted Almond Granola 400g,Kellogg's,Snacks & Dry Goods,pack,15,75.00,120.00
+890126219019,Cold Extracted Extra Virgin Olive Oil 500ml,Borges,Canned Goods,bottles,8,160.00,240.00
+890126220020,Traditional French Butter Croissants 4-Pack,Saint Honoré,Bakery,pack,10,50.00,85.00
